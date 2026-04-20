@@ -2,6 +2,7 @@ package com.wookjae.scheduler.schedule.controller;
 
 import com.wookjae.scheduler.schedule.dto.CreateScheduleRequest;
 import com.wookjae.scheduler.schedule.dto.CreateScheduleResponse;
+import com.wookjae.scheduler.schedule.dto.DeleteScheduleRequest;
 import com.wookjae.scheduler.schedule.dto.GetScheduleResponse;
 import com.wookjae.scheduler.schedule.dto.UpdateScheduleRequest;
 import com.wookjae.scheduler.schedule.dto.UpdateScheduleResponse;
@@ -53,10 +54,11 @@ public class ScheduleController {
     }
 
     @DeleteMapping("/schedules/{scheduleId}")
-    public ResponseEntity<Void> deleteSchedule(
-        @PathVariable Long scheduleId
+    public ResponseEntity<Void> delete(
+        @PathVariable Long scheduleId,
+        @RequestBody DeleteScheduleRequest request
     ) {
-        scheduleService.delete(scheduleId);
+        scheduleService.delete(scheduleId, request);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

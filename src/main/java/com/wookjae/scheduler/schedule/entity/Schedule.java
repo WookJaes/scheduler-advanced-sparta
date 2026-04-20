@@ -1,6 +1,7 @@
 package com.wookjae.scheduler.schedule.entity;
 
 import com.wookjae.scheduler.global.entity.BaseEntity;
+import com.wookjae.scheduler.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -18,9 +19,14 @@ public class Schedule extends BaseEntity {
     private String title;
     private String content;
 
-    public Schedule(String title, String content) {
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    public Schedule(String title, String content, User user) {
         this.title = title;
         this.content = content;
+        this.user = user;
     }
 
     public void update(String title, String content) {

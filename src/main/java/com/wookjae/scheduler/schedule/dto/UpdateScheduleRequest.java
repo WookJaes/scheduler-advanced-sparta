@@ -1,11 +1,15 @@
 package com.wookjae.scheduler.schedule.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
 @Getter
 public class UpdateScheduleRequest {
+
+    @NotNull
+    private Long userId;
 
     @NotBlank
     @Size(max = 30)

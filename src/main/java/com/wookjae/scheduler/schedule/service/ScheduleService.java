@@ -2,11 +2,14 @@ package com.wookjae.scheduler.schedule.service;
 
 import com.wookjae.scheduler.schedule.dto.CreateScheduleRequest;
 import com.wookjae.scheduler.schedule.dto.CreateScheduleResponse;
+import com.wookjae.scheduler.schedule.dto.DeleteScheduleRequest;
 import com.wookjae.scheduler.schedule.dto.GetScheduleResponse;
 import com.wookjae.scheduler.schedule.dto.UpdateScheduleRequest;
 import com.wookjae.scheduler.schedule.dto.UpdateScheduleResponse;
 import com.wookjae.scheduler.schedule.entity.Schedule;
 import com.wookjae.scheduler.schedule.repository.ScheduleRepository;
+import com.wookjae.scheduler.user.entity.User;
+import com.wookjae.scheduler.user.repository.UserRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,13 +19,18 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ScheduleService {
 
+    private final UserRepository userRepository;
     private final ScheduleRepository scheduleRepository;
 
     @Transactional
     public CreateScheduleResponse save(CreateScheduleRequest request) {
+        User user = userRepository.findById(request.getUserId()).orElseThrow(
+            () -> new IllegalStateException("존재하지 않는 유저입니다."));
+
         Schedule schedule = new Schedule(
             request.getTitle(),
-            request.getContent()
+            request.getContent(),
+            user
         );
 
         Schedule savedSchedule = scheduleRepository.save(schedule);
@@ -41,6 +49,7 @@ public class ScheduleService {
         return schedules.stream()
             .map(schedule -> new GetScheduleResponse(
                 schedule.getId(),
+                schedule.getUser().getId(),
                 schedule.getTitle(),
                 schedule.getContent(),
                 schedule.getCreatedAt(),
@@ -55,6 +64,7 @@ public class ScheduleService {
 
         return new GetScheduleResponse(
             schedule.getId(),
+            schedule.getUser().getId(),
             schedule.getTitle(),
             schedule.getContent(),
             schedule.getCreatedAt(),
@@ -66,6 +76,10 @@ public class ScheduleService {
     public UpdateScheduleResponse update(Long scheduleId, UpdateScheduleRequest request) {
         Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
             () -> new IllegalStateException("해당 일정이 없습니다."));
+
+        if (request.getUserId() == null || !request.getUserId().equals(schedule.getUser().getId())) {
+            throw new IllegalStateException("대상 유저가 아닙니다.");
+        }
 
         schedule.update(
             request.getTitle(),
@@ -81,10 +95,12 @@ public class ScheduleService {
     }
 
     @Transactional
-    public void delete(Long scheduleId) {
-        boolean exists = scheduleRepository.existsById(scheduleId);
-        if (!exists) {
-            throw new IllegalStateException("해당 일정이 없습니다.");
+    public void delete(Long scheduleId, DeleteScheduleRequest request) {
+        Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
+            () -> new IllegalStateException("해당 일정이 없습니다."));
+
+        if (request.getUserId() == null || !request.getUserId().equals(schedule.getUser().getId())) {
+            throw new IllegalStateException("대상 유저가 아닙니다.");
         }
         scheduleRepository.deleteById(scheduleId);
     }
