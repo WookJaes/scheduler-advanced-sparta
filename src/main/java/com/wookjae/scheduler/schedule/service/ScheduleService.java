@@ -77,7 +77,7 @@ public class ScheduleService {
         Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
             () -> new IllegalStateException("해당 일정이 없습니다."));
 
-        if (request.getUserId() == null || !request.getUserId().equals(schedule.getUser().getId())) {
+        if (!request.getUserId().equals(schedule.getUser().getId())) {
             throw new IllegalStateException("대상 유저가 아닙니다.");
         }
 
@@ -99,7 +99,7 @@ public class ScheduleService {
         Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
             () -> new IllegalStateException("해당 일정이 없습니다."));
 
-        if (request.getUserId() == null || !request.getUserId().equals(schedule.getUser().getId())) {
+        if (!request.getUserId().equals(schedule.getUser().getId())) {
             throw new IllegalStateException("대상 유저가 아닙니다.");
         }
         scheduleRepository.deleteById(scheduleId);
