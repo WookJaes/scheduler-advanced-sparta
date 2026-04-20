@@ -1,11 +1,11 @@
 package com.wookjae.scheduler.user.service;
 
-import com.wookjae.scheduler.user.dto.CreateUserRequest;
-import com.wookjae.scheduler.user.dto.CreateUserResponse;
-import com.wookjae.scheduler.user.dto.DeleteUserRequest;
-import com.wookjae.scheduler.user.dto.GetUserResponse;
-import com.wookjae.scheduler.user.dto.UpdateUserRequest;
-import com.wookjae.scheduler.user.dto.UpdateUserResponse;
+import com.wookjae.scheduler.user.dto.UserSignUpRequest;
+import com.wookjae.scheduler.user.dto.UserSignUpResponse;
+import com.wookjae.scheduler.user.dto.UserDeleteRequest;
+import com.wookjae.scheduler.user.dto.UserGetResponse;
+import com.wookjae.scheduler.user.dto.UserUpdateRequest;
+import com.wookjae.scheduler.user.dto.UserUpdateResponse;
 import com.wookjae.scheduler.user.entity.User;
 import com.wookjae.scheduler.user.repository.UserRepository;
 import java.util.List;
@@ -20,7 +20,7 @@ public class UserService {
     private final UserRepository userRepository;
 
     @Transactional
-    public CreateUserResponse save(CreateUserRequest request) {
+    public UserSignUpResponse signup(UserSignUpRequest request) {
         User user = new User(
             request.getName(),
             request.getEmail(),
@@ -28,7 +28,7 @@ public class UserService {
         );
 
         User savedUser = userRepository.save(user);
-        return new CreateUserResponse(
+        return new UserSignUpResponse(
             savedUser.getId(),
             savedUser.getName(),
             savedUser.getEmail(),
@@ -38,10 +38,10 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<GetUserResponse> findAll() {
+    public List<UserGetResponse> findAll() {
         List<User> users = userRepository.findAll();
         return users.stream()
-            .map(user -> new GetUserResponse(
+            .map(user -> new UserGetResponse(
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
@@ -51,11 +51,11 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public GetUserResponse findOne(Long userId) {
+    public UserGetResponse findOne(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(
             () -> new IllegalStateException("없는 유저입니다."));
 
-        return new GetUserResponse(
+        return new UserGetResponse(
             user.getId(),
             user.getName(),
             user.getEmail(),
@@ -65,7 +65,7 @@ public class UserService {
     }
 
     @Transactional
-    public UpdateUserResponse update(Long userId, UpdateUserRequest request) {
+    public UserUpdateResponse update(Long userId, UserUpdateRequest request) {
         User user = userRepository.findById(userId).orElseThrow(
             () -> new IllegalStateException("없는 유저입니다."));
 
@@ -76,7 +76,7 @@ public class UserService {
         user.update(
             request.getName());
 
-        return new UpdateUserResponse(
+        return new UserUpdateResponse(
             user.getId(),
             user.getName(),
             user.getEmail(),
@@ -86,7 +86,7 @@ public class UserService {
     }
 
     @Transactional
-    public void delete(Long userId, DeleteUserRequest request) {
+    public void delete(Long userId, UserDeleteRequest request) {
         User user = userRepository.findById(userId).orElseThrow(
             () -> new IllegalStateException("없는 유저입니다.")
         );

@@ -1,11 +1,11 @@
 package com.wookjae.scheduler.schedule.service;
 
-import com.wookjae.scheduler.schedule.dto.CreateScheduleRequest;
-import com.wookjae.scheduler.schedule.dto.CreateScheduleResponse;
-import com.wookjae.scheduler.schedule.dto.DeleteScheduleRequest;
-import com.wookjae.scheduler.schedule.dto.GetScheduleResponse;
-import com.wookjae.scheduler.schedule.dto.UpdateScheduleRequest;
-import com.wookjae.scheduler.schedule.dto.UpdateScheduleResponse;
+import com.wookjae.scheduler.schedule.dto.ScheduleCreateRequest;
+import com.wookjae.scheduler.schedule.dto.ScheduleCreateResponse;
+import com.wookjae.scheduler.schedule.dto.ScheduleDeleteRequest;
+import com.wookjae.scheduler.schedule.dto.ScheduleGetResponse;
+import com.wookjae.scheduler.schedule.dto.ScheduleUpdateRequest;
+import com.wookjae.scheduler.schedule.dto.ScheduleUpdateResponse;
 import com.wookjae.scheduler.schedule.entity.Schedule;
 import com.wookjae.scheduler.schedule.repository.ScheduleRepository;
 import com.wookjae.scheduler.user.entity.User;
@@ -23,7 +23,7 @@ public class ScheduleService {
     private final ScheduleRepository scheduleRepository;
 
     @Transactional
-    public CreateScheduleResponse save(CreateScheduleRequest request) {
+    public ScheduleCreateResponse save(ScheduleCreateRequest request) {
         User user = userRepository.findById(request.getUserId()).orElseThrow(
             () -> new IllegalStateException("존재하지 않는 유저입니다."));
 
@@ -34,7 +34,7 @@ public class ScheduleService {
         );
 
         Schedule savedSchedule = scheduleRepository.save(schedule);
-        return new CreateScheduleResponse(
+        return new ScheduleCreateResponse(
             savedSchedule.getId(),
             savedSchedule.getTitle(),
             savedSchedule.getContent(),
@@ -44,10 +44,10 @@ public class ScheduleService {
     }
 
     @Transactional(readOnly = true)
-    public List<GetScheduleResponse> findAll() {
+    public List<ScheduleGetResponse> findAll() {
         List<Schedule> schedules = scheduleRepository.findAll();
         return schedules.stream()
-            .map(schedule -> new GetScheduleResponse(
+            .map(schedule -> new ScheduleGetResponse(
                 schedule.getId(),
                 schedule.getUser().getId(),
                 schedule.getTitle(),
@@ -58,11 +58,11 @@ public class ScheduleService {
     }
 
     @Transactional(readOnly = true)
-    public GetScheduleResponse findOne(Long scheduleId) {
+    public ScheduleGetResponse findOne(Long scheduleId) {
         Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
             () -> new IllegalStateException("해당 일정이 없습니다."));
 
-        return new GetScheduleResponse(
+        return new ScheduleGetResponse(
             schedule.getId(),
             schedule.getUser().getId(),
             schedule.getTitle(),
@@ -73,7 +73,7 @@ public class ScheduleService {
     }
 
     @Transactional
-    public UpdateScheduleResponse update(Long scheduleId, UpdateScheduleRequest request) {
+    public ScheduleUpdateResponse update(Long scheduleId, ScheduleUpdateRequest request) {
         Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
             () -> new IllegalStateException("해당 일정이 없습니다."));
 
@@ -85,7 +85,7 @@ public class ScheduleService {
             request.getTitle(),
             request.getContent()
         );
-        return new UpdateScheduleResponse(
+        return new ScheduleUpdateResponse(
             schedule.getId(),
             schedule.getTitle(),
             schedule.getContent(),
@@ -95,7 +95,7 @@ public class ScheduleService {
     }
 
     @Transactional
-    public void delete(Long scheduleId, DeleteScheduleRequest request) {
+    public void delete(Long scheduleId, ScheduleDeleteRequest request) {
         Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
             () -> new IllegalStateException("해당 일정이 없습니다."));
 

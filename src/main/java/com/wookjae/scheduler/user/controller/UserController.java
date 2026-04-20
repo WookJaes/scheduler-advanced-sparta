@@ -1,11 +1,11 @@
 package com.wookjae.scheduler.user.controller;
 
-import com.wookjae.scheduler.user.dto.CreateUserRequest;
-import com.wookjae.scheduler.user.dto.CreateUserResponse;
-import com.wookjae.scheduler.user.dto.DeleteUserRequest;
-import com.wookjae.scheduler.user.dto.GetUserResponse;
-import com.wookjae.scheduler.user.dto.UpdateUserRequest;
-import com.wookjae.scheduler.user.dto.UpdateUserResponse;
+import com.wookjae.scheduler.user.dto.UserSignUpRequest;
+import com.wookjae.scheduler.user.dto.UserSignUpResponse;
+import com.wookjae.scheduler.user.dto.UserDeleteRequest;
+import com.wookjae.scheduler.user.dto.UserGetResponse;
+import com.wookjae.scheduler.user.dto.UserUpdateRequest;
+import com.wookjae.scheduler.user.dto.UserUpdateResponse;
 import com.wookjae.scheduler.user.service.UserService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -27,28 +27,28 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/users/signup")
-    public ResponseEntity<CreateUserResponse> create(
-        @Valid @RequestBody CreateUserRequest request
+    public ResponseEntity<UserSignUpResponse> signup(
+        @Valid @RequestBody UserSignUpRequest request
     ) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.save(request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.signup(request));
     }
 
     @GetMapping("/users")
-    public ResponseEntity<List<GetUserResponse>> getAll() {
+    public ResponseEntity<List<UserGetResponse>> getAll() {
         return ResponseEntity.status(HttpStatus.OK).body(userService.findAll());
     }
 
     @GetMapping("/users/{userId}")
-    public ResponseEntity<GetUserResponse> getOne(
+    public ResponseEntity<UserGetResponse> getOne(
         @PathVariable Long userId
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.findOne(userId));
     }
 
     @PutMapping("/users/{userId}")
-    public ResponseEntity<UpdateUserResponse> update(
+    public ResponseEntity<UserUpdateResponse> update(
         @PathVariable Long userId,
-        @Valid @RequestBody UpdateUserRequest request
+        @Valid @RequestBody UserUpdateRequest request
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.update(userId, request));
     }
@@ -56,7 +56,7 @@ public class UserController {
     @DeleteMapping("/users/{userId}")
     ResponseEntity<Void> delete(
         @PathVariable Long userId,
-        @Valid @RequestBody DeleteUserRequest request
+        @Valid @RequestBody UserDeleteRequest request
     ) {
         userService.delete(userId, request);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();

@@ -1,11 +1,11 @@
 package com.wookjae.scheduler.schedule.controller;
 
-import com.wookjae.scheduler.schedule.dto.CreateScheduleRequest;
-import com.wookjae.scheduler.schedule.dto.CreateScheduleResponse;
-import com.wookjae.scheduler.schedule.dto.DeleteScheduleRequest;
-import com.wookjae.scheduler.schedule.dto.GetScheduleResponse;
-import com.wookjae.scheduler.schedule.dto.UpdateScheduleRequest;
-import com.wookjae.scheduler.schedule.dto.UpdateScheduleResponse;
+import com.wookjae.scheduler.schedule.dto.ScheduleCreateRequest;
+import com.wookjae.scheduler.schedule.dto.ScheduleCreateResponse;
+import com.wookjae.scheduler.schedule.dto.ScheduleDeleteRequest;
+import com.wookjae.scheduler.schedule.dto.ScheduleGetResponse;
+import com.wookjae.scheduler.schedule.dto.ScheduleUpdateRequest;
+import com.wookjae.scheduler.schedule.dto.ScheduleUpdateResponse;
 import com.wookjae.scheduler.schedule.service.ScheduleService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -27,28 +27,28 @@ public class ScheduleController {
     private final ScheduleService scheduleService;
 
     @PostMapping("/schedules")
-    public ResponseEntity<CreateScheduleResponse> create(
-        @Valid @RequestBody CreateScheduleRequest request
+    public ResponseEntity<ScheduleCreateResponse> create(
+        @Valid @RequestBody ScheduleCreateRequest request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(scheduleService.save(request));
     }
 
     @GetMapping("/schedules")
-    public ResponseEntity<List<GetScheduleResponse>> getAll() {
+    public ResponseEntity<List<ScheduleGetResponse>> getAll() {
         return ResponseEntity.status(HttpStatus.OK).body(scheduleService.findAll());
     }
 
     @GetMapping("/schedules/{scheduleId}")
-    public ResponseEntity<GetScheduleResponse> getOne(
+    public ResponseEntity<ScheduleGetResponse> getOne(
         @PathVariable Long scheduleId
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(scheduleService.findOne(scheduleId));
     }
 
     @PutMapping("/schedules/{scheduleId}")
-    public ResponseEntity<UpdateScheduleResponse> update(
+    public ResponseEntity<ScheduleUpdateResponse> update(
         @PathVariable Long scheduleId,
-        @Valid @RequestBody UpdateScheduleRequest request
+        @Valid @RequestBody ScheduleUpdateRequest request
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(scheduleService.update(scheduleId, request));
     }
@@ -56,7 +56,7 @@ public class ScheduleController {
     @DeleteMapping("/schedules/{scheduleId}")
     public ResponseEntity<Void> delete(
         @PathVariable Long scheduleId,
-        @Valid @RequestBody DeleteScheduleRequest request
+        @Valid @RequestBody ScheduleDeleteRequest request
     ) {
         scheduleService.delete(scheduleId, request);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();

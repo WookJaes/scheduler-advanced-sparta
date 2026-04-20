@@ -1,22 +1,22 @@
-package com.wookjae.scheduler.schedule.dto;
+package com.wookjae.scheduler.user.dto;
 
 import java.time.LocalDateTime;
 import lombok.Getter;
 
 @Getter
-public class CreateScheduleResponse {
+public class UserUpdateResponse {
 
     private final Long id;
-    private final String title;
-    private final String content;
+    private final String name;
+    private final String email;
     private final LocalDateTime createdAt;
     private final LocalDateTime modifiedAt;
 
-    public CreateScheduleResponse(Long id, String title, String content, LocalDateTime createdAt,
+    public UserUpdateResponse(Long id, String name, String email, LocalDateTime createdAt,
         LocalDateTime modifiedAt) {
         this.id = id;
-        this.title = title;
-        this.content = content;
+        this.name = name;
+        this.email = email;
         this.createdAt = createdAt;
         this.modifiedAt = modifiedAt;
     }

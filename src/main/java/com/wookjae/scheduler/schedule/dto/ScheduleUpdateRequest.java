@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
 @Getter
-public class UpdateScheduleRequest {
+public class ScheduleUpdateRequest {
 
     @NotNull(message = "유저 ID는 필수입니다.")
     private Long userId;
