@@ -23,7 +23,8 @@ public class UserService {
     public CreateUserResponse save(CreateUserRequest request) {
         User user = new User(
             request.getName(),
-            request.getEmail()
+            request.getEmail(),
+            request.getPassword()
         );
 
         User savedUser = userRepository.save(user);
@@ -68,6 +69,10 @@ public class UserService {
         User user = userRepository.findById(userId).orElseThrow(
             () -> new IllegalStateException("없는 유저입니다."));
 
+        if (request.getPassword() == null || !request.getPassword().equals(user.getPassword())) {
+            throw new IllegalStateException("비밀번호가 일치하지 않습니다.");
+        }
+
         user.update(
             request.getName());
 
@@ -89,6 +94,11 @@ public class UserService {
         if (request.getEmail() == null || !request.getEmail().equals(user.getEmail())) {
             throw new IllegalStateException("이메일이 같지 않습니다.");
         }
+
+        if (request.getPassword() == null || !request.getPassword().equals(user.getPassword())) {
+            throw new IllegalStateException("비밀번호가 일치하지 않습니다.");
+        }
+
         userRepository.delete(user);
     }
 }
