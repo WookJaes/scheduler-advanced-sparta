@@ -2,11 +2,11 @@ package com.wookjae.scheduler.schedule.controller;
 
 import com.wookjae.scheduler.schedule.dto.ScheduleCreateRequest;
 import com.wookjae.scheduler.schedule.dto.ScheduleCreateResponse;
-import com.wookjae.scheduler.schedule.dto.ScheduleDeleteRequest;
 import com.wookjae.scheduler.schedule.dto.ScheduleGetResponse;
 import com.wookjae.scheduler.schedule.dto.ScheduleUpdateRequest;
 import com.wookjae.scheduler.schedule.dto.ScheduleUpdateResponse;
 import com.wookjae.scheduler.schedule.service.ScheduleService;
+import com.wookjae.scheduler.user.dto.SessionUser;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.SessionAttribute;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,9 +29,13 @@ public class ScheduleController {
 
     @PostMapping("/schedules")
     public ResponseEntity<ScheduleCreateResponse> create(
+        @SessionAttribute(name = "loginUser", required = false) SessionUser sessionUser,
         @Valid @RequestBody ScheduleCreateRequest request
     ) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(scheduleService.save(request));
+        if (sessionUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(scheduleService.save(sessionUser, request));
     }
 
     @GetMapping("/schedules")
@@ -48,17 +53,24 @@ public class ScheduleController {
     @PutMapping("/schedules/{scheduleId}")
     public ResponseEntity<ScheduleUpdateResponse> update(
         @PathVariable Long scheduleId,
+        @SessionAttribute(name = "loginUser", required = false) SessionUser sessionUser,
         @Valid @RequestBody ScheduleUpdateRequest request
     ) {
-        return ResponseEntity.status(HttpStatus.OK).body(scheduleService.update(scheduleId, request));
+        if (sessionUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(scheduleService.update(scheduleId, sessionUser, request));
     }
 
     @DeleteMapping("/schedules/{scheduleId}")
     public ResponseEntity<Void> delete(
         @PathVariable Long scheduleId,
-        @Valid @RequestBody ScheduleDeleteRequest request
+        @SessionAttribute(name = "loginUser", required = false) SessionUser sessionUser
     ) {
-        scheduleService.delete(scheduleId, request);
+        if (sessionUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        scheduleService.delete(scheduleId, sessionUser);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
