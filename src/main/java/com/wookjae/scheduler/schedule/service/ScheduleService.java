@@ -3,6 +3,7 @@ package com.wookjae.scheduler.schedule.service;
 import com.wookjae.scheduler.schedule.dto.ScheduleCreateRequest;
 import com.wookjae.scheduler.schedule.dto.ScheduleCreateResponse;
 import com.wookjae.scheduler.schedule.dto.ScheduleGetResponse;
+import com.wookjae.scheduler.schedule.dto.SchedulePageResponse;
 import com.wookjae.scheduler.schedule.dto.ScheduleUpdateRequest;
 import com.wookjae.scheduler.schedule.dto.ScheduleUpdateResponse;
 import com.wookjae.scheduler.schedule.entity.Schedule;
@@ -10,8 +11,11 @@ import com.wookjae.scheduler.schedule.repository.ScheduleRepository;
 import com.wookjae.scheduler.user.dto.SessionUser;
 import com.wookjae.scheduler.user.entity.User;
 import com.wookjae.scheduler.user.repository.UserRepository;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,17 +50,10 @@ public class ScheduleService {
     }
 
     @Transactional(readOnly = true)
-    public List<ScheduleGetResponse> findAll() {
-        List<Schedule> schedules = scheduleRepository.findAll();
-        return schedules.stream()
-            .map(schedule -> new ScheduleGetResponse(
-                schedule.getId(),
-                schedule.getUser().getId(),
-                schedule.getTitle(),
-                schedule.getContent(),
-                schedule.getCreatedAt(),
-                schedule.getModifiedAt()
-            )).toList();
+    public Page<SchedulePageResponse> findAll(int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size,
+            Sort.by(Sort.Direction.DESC, "modifiedAt"));
+        return scheduleRepository.findAllSchedules(pageable);
     }
 
     @Transactional(readOnly = true)
