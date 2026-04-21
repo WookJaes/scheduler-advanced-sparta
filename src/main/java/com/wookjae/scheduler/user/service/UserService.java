@@ -1,5 +1,6 @@
 package com.wookjae.scheduler.user.service;
 
+import com.wookjae.scheduler.global.config.PasswordEncoder;
 import com.wookjae.scheduler.user.dto.SessionUser;
 import com.wookjae.scheduler.user.dto.UserLoginRequest;
 import com.wookjae.scheduler.user.dto.UserSignUpRequest;
@@ -20,13 +21,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public UserSignUpResponse signup(UserSignUpRequest request) {
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+
         User user = new User(
             request.getName(),
             request.getEmail(),
-            request.getPassword()
+            encodedPassword
         );
 
         User savedUser = userRepository.save(user);
@@ -44,7 +48,7 @@ public class UserService {
         User user = userRepository.findByEmail(request.getEmail()).orElseThrow(
             () -> new IllegalStateException("이메일 또는 비밀번호가 올바르지 않습니다."));
 
-        if (!request.getPassword().equals(user.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new IllegalStateException("이메일 또는 비밀번호가 올바르지 않습니다.");
         }
 
@@ -89,7 +93,7 @@ public class UserService {
         User user = userRepository.findById(sessionUser.getId()).orElseThrow(
             () -> new IllegalStateException("존재하지 않는 유저입니다."));
 
-        if (!request.getPassword().equals(user.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new IllegalStateException("비밀번호가 일치하지 않습니다.");
         }
 
@@ -115,7 +119,7 @@ public class UserService {
             throw new IllegalStateException("이메일이 같지 않습니다.");
         }
 
-        if (!request.getPassword().equals(user.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new IllegalStateException("비밀번호가 일치하지 않습니다.");
         }
 
