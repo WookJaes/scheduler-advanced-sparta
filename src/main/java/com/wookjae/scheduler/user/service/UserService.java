@@ -1,13 +1,13 @@
 package com.wookjae.scheduler.user.service;
 
+import com.wookjae.scheduler.global.auth.SessionUser;
 import com.wookjae.scheduler.global.config.PasswordEncoder;
 import com.wookjae.scheduler.global.exception.*;
-import com.wookjae.scheduler.global.auth.SessionUser;
+import com.wookjae.scheduler.user.dto.UserDeleteRequest;
+import com.wookjae.scheduler.user.dto.UserGetResponse;
 import com.wookjae.scheduler.user.dto.UserLoginRequest;
 import com.wookjae.scheduler.user.dto.UserSignUpRequest;
 import com.wookjae.scheduler.user.dto.UserSignUpResponse;
-import com.wookjae.scheduler.user.dto.UserDeleteRequest;
-import com.wookjae.scheduler.user.dto.UserGetResponse;
 import com.wookjae.scheduler.user.dto.UserUpdateRequest;
 import com.wookjae.scheduler.user.dto.UserUpdateResponse;
 import com.wookjae.scheduler.user.entity.User;
@@ -43,7 +43,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public List<UserGetResponse> findAll() {
-        return userRepository.findAll().stream()
+        return userRepository.findAllByDeletedFalse().stream()
             .map(UserGetResponse::from)
             .toList();
     }
@@ -69,22 +69,22 @@ public class UserService {
         validateLogin(sessionUser);
         User user = findUserById(sessionUser.getId());
         validatePassword(request.getPassword(), user.getPassword(), "비밀번호가 일치하지 않습니다.");
-        userRepository.delete(user);
+        user.softDelete();
     }
 
     private void validateDuplicateEmail(String email) {
-        if (userRepository.existsByEmail(email)) {
+        if (userRepository.existsByEmailAndDeletedFalse(email)) {
             throw new DuplicateEmailException("이미 사용 중인 이메일입니다.");
         }
     }
 
     private User findUserByEmail(String email) {
-        return userRepository.findByEmail(email)
-            .orElseThrow(() -> new UnauthorizedException("이메일 또는 비밀번호가 올바르지 않습니다."));
+        return userRepository.findByEmailAndDeletedFalse(email).orElseThrow(
+            () -> new UnauthorizedException("이메일 또는 비밀번호가 올바르지 않습니다."));
     }
 
     private User findUserById(Long userId) {
-        return userRepository.findById(userId).orElseThrow(
+        return userRepository.findByIdAndDeletedFalse(userId).orElseThrow(
             () -> new UserNotFoundException("사용자를 찾을 수 없습니다.")
         );
     }

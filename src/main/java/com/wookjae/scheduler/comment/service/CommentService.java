@@ -7,10 +7,10 @@ import com.wookjae.scheduler.comment.dto.CommentUpdateRequest;
 import com.wookjae.scheduler.comment.dto.CommentUpdateResponse;
 import com.wookjae.scheduler.comment.entity.Comment;
 import com.wookjae.scheduler.comment.repository.CommentRepository;
+import com.wookjae.scheduler.global.auth.SessionUser;
 import com.wookjae.scheduler.global.exception.*;
 import com.wookjae.scheduler.schedule.entity.Schedule;
 import com.wookjae.scheduler.schedule.repository.ScheduleRepository;
-import com.wookjae.scheduler.global.auth.SessionUser;
 import com.wookjae.scheduler.user.entity.User;
 import com.wookjae.scheduler.user.repository.UserRepository;
 import java.util.List;
@@ -39,7 +39,9 @@ public class CommentService {
 
     @Transactional(readOnly = true)
     public List<CommentGetResponse> findAll(Long scheduleId) {
-        return commentRepository.findAllByScheduleId(scheduleId).stream()
+        findScheduleById(scheduleId);
+
+        return commentRepository.findAllByScheduleIdAndDeletedFalse(scheduleId).stream()
             .map(CommentGetResponse::from)
             .toList();
     }
@@ -61,21 +63,28 @@ public class CommentService {
         Comment comment = findCommentById(commentId);
         validateCommentSchedule(scheduleId, comment);
         validateCommentOwner(sessionUser, comment, "댓글을 삭제할 권한이 없습니다.");
-        commentRepository.delete(comment);
+
+        comment.softDelete();
     }
 
     private User findUserById(Long userId) {
-        return userRepository.findById(userId).orElseThrow(
+        return userRepository.findByIdAndDeletedFalse(userId).orElseThrow(
             () -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
     }
 
     private Schedule findScheduleById(Long scheduleId) {
-        return scheduleRepository.findById(scheduleId).orElseThrow(
-            () -> new ScheduleNotFoundException("일정을 찾을 수 없습니다."));
+        Schedule schedule = scheduleRepository.findByIdAndDeletedFalse(scheduleId)
+            .orElseThrow(() -> new ScheduleNotFoundException("일정을 찾을 수 없습니다."));
+
+        if (schedule.getUser().isDeleted()) {
+            throw new ScheduleNotFoundException("일정을 찾을 수 없습니다.");
+        }
+
+        return schedule;
     }
 
     private Comment findCommentById(Long commentId) {
-        return commentRepository.findById(commentId).orElseThrow(
+        return commentRepository.findByIdAndDeletedFalse(commentId).orElseThrow(
             () -> new CommentNotFoundException("댓글을 찾을 수 없습니다."));
     }
 

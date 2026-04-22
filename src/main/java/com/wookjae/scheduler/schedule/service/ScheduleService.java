@@ -1,5 +1,6 @@
 package com.wookjae.scheduler.schedule.service;
 
+import com.wookjae.scheduler.global.auth.SessionUser;
 import com.wookjae.scheduler.global.exception.*;
 import com.wookjae.scheduler.schedule.dto.ScheduleCreateRequest;
 import com.wookjae.scheduler.schedule.dto.ScheduleCreateResponse;
@@ -9,7 +10,6 @@ import com.wookjae.scheduler.schedule.dto.ScheduleUpdateRequest;
 import com.wookjae.scheduler.schedule.dto.ScheduleUpdateResponse;
 import com.wookjae.scheduler.schedule.entity.Schedule;
 import com.wookjae.scheduler.schedule.repository.ScheduleRepository;
-import com.wookjae.scheduler.global.auth.SessionUser;
 import com.wookjae.scheduler.user.entity.User;
 import com.wookjae.scheduler.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -65,17 +65,23 @@ public class ScheduleService {
         validateLogin(sessionUser);
         Schedule schedule = findScheduleById(scheduleId);
         validateScheduleOwner(sessionUser, schedule, "일정을 삭제할 권한이 없습니다.");
-        scheduleRepository.delete(schedule);
+        schedule.softDelete();
     }
 
     private User findUserById(Long userId) {
-        return userRepository.findById(userId).orElseThrow(
+        return userRepository.findByIdAndDeletedFalse(userId).orElseThrow(
             () -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
     }
 
     private Schedule findScheduleById(Long scheduleId) {
-        return scheduleRepository.findById(scheduleId).orElseThrow(
-            () -> new ScheduleNotFoundException("일정을 찾을 수 없습니다."));
+        Schedule schedule = scheduleRepository.findByIdAndDeletedFalse(scheduleId)
+            .orElseThrow(() -> new ScheduleNotFoundException("일정을 찾을 수 없습니다."));
+
+        if (schedule.getUser().isDeleted()) {
+            throw new ScheduleNotFoundException("일정을 찾을 수 없습니다.");
+        }
+
+        return schedule;
     }
 
     private void validateScheduleOwner(SessionUser sessionUser, Schedule schedule, String message) {

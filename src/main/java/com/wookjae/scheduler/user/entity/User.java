@@ -25,6 +25,9 @@ public class User extends BaseEntity {
     private String email;
     private String password;
 
+    @Column(nullable = false)
+    private boolean deleted = false;
+
     public User(String name, String email, String password) {
         this.name = name;
         this.email = email;
@@ -33,5 +36,9 @@ public class User extends BaseEntity {
 
     public void update(String name) {
         this.name = name;
+    }
+
+    public void softDelete() {
+        this.deleted = true;
     }
 }

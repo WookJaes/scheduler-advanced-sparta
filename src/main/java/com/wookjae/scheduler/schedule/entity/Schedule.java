@@ -23,6 +23,9 @@ public class Schedule extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(nullable = false)
+    private boolean deleted = false;
+
     public Schedule(String title, String content, User user) {
         this.title = title;
         this.content = content;
@@ -32,5 +35,9 @@ public class Schedule extends BaseEntity {
     public void update(String title, String content) {
         this.title = title;
         this.content = content;
+    }
+
+    public void softDelete() {
+        this.deleted = true;
     }
 }
