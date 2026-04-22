@@ -7,7 +7,7 @@ import lombok.Getter;
 @Getter
 public class CommentUpdateRequest {
 
-    @NotBlank
-    @Size(max = 200)
+    @NotBlank(message = "내용은 필수입니다.")
+    @Size(max = 200, message = "200자 이하여야 합니다.")
     private String content;
 }

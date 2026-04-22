@@ -14,7 +14,7 @@ public class SessionUser {
             throw new IllegalArgumentException("사용자 ID는 필수입니다.");
         }
         if (email == null || email.isBlank()) {
-            throw new IllegalArgumentException("이메일은 비어 있을 수 없습니다.");
+            throw new IllegalArgumentException("이메일은 필수입니다.");
         }
 
         this.id = id;

@@ -7,6 +7,7 @@ import com.wookjae.scheduler.comment.dto.CommentUpdateRequest;
 import com.wookjae.scheduler.comment.dto.CommentUpdateResponse;
 import com.wookjae.scheduler.comment.entity.Comment;
 import com.wookjae.scheduler.comment.repository.CommentRepository;
+import com.wookjae.scheduler.global.exception.*;
 import com.wookjae.scheduler.schedule.entity.Schedule;
 import com.wookjae.scheduler.schedule.repository.ScheduleRepository;
 import com.wookjae.scheduler.user.dto.SessionUser;
@@ -31,11 +32,11 @@ public class CommentService {
         validateLogin(sessionUser);
 
         User user = userRepository.findById(sessionUser.getId()).orElseThrow(
-            () -> new IllegalStateException("해당 유저가 없습니다.")
+            () -> new UserNotFoundException("사용자를 찾을 수 없습니다.")
         );
 
         Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
-            () -> new IllegalStateException("해당 일정이 없습니다.")
+            () -> new ScheduleNotFoundException("일정을 찾을 수 없습니다.")
         );
 
         Comment comment = new Comment(
@@ -76,15 +77,15 @@ public class CommentService {
         validateLogin(sessionUser);
 
         Comment comment = commentRepository.findById(commentId).orElseThrow(
-            () -> new IllegalStateException("해당 댓글이 없습니다.")
+            () -> new CommentNotFoundException("댓글을 찾을 수 없습니다.")
         );
 
         if (!comment.getSchedule().getId().equals(scheduleId)) {
-            throw new IllegalStateException("해당 일정에 속한 댓글이 아닙니다.");
+            throw new BadRequestException("해당 일정의 댓글이 아닙니다.");
         }
 
         if (!comment.getUser().getId().equals(sessionUser.getId())) {
-            throw new IllegalStateException("댓글 수정 권한이 없습니다.");
+            throw new ForbiddenException("댓글을 수정할 권한이 없습니다.");
         }
 
         comment.update(request.getContent());
@@ -105,15 +106,15 @@ public class CommentService {
         validateLogin(sessionUser);
 
         Comment comment = commentRepository.findById(commentId).orElseThrow(
-            () -> new IllegalStateException("해당 댓글이 없습니다.")
+            () -> new CommentNotFoundException("댓글을 찾을 수 없습니다.")
         );
 
         if (!comment.getSchedule().getId().equals(scheduleId)) {
-            throw new IllegalStateException("해당 일정에 속한 댓글이 아닙니다.");
+            throw new BadRequestException("해당 일정의 댓글이 아닙니다.");
         }
 
         if (!comment.getUser().getId().equals(sessionUser.getId())) {
-            throw new IllegalStateException("댓글 삭제 권한이 없습니다.");
+            throw new ForbiddenException("댓글을 삭제할 권한이 없습니다.");
         }
 
         commentRepository.delete(comment);
@@ -121,7 +122,7 @@ public class CommentService {
 
     private void validateLogin(SessionUser sessionUser) {
         if (sessionUser == null) {
-            throw new IllegalStateException("로그인이 필요합니다.");
+            throw new UnauthorizedException("로그인이 필요합니다.");
         }
     }
 }

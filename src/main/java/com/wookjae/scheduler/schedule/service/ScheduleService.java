@@ -1,5 +1,6 @@
 package com.wookjae.scheduler.schedule.service;
 
+import com.wookjae.scheduler.global.exception.*;
 import com.wookjae.scheduler.schedule.dto.ScheduleCreateRequest;
 import com.wookjae.scheduler.schedule.dto.ScheduleCreateResponse;
 import com.wookjae.scheduler.schedule.dto.ScheduleGetResponse;
@@ -31,7 +32,7 @@ public class ScheduleService {
         validateLogin(sessionUser);
 
         User user = userRepository.findById(sessionUser.getId()).orElseThrow(
-            () -> new IllegalStateException("존재하지 않는 유저입니다."));
+            () -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
 
         Schedule schedule = new Schedule(
             request.getTitle(),
@@ -59,7 +60,7 @@ public class ScheduleService {
     @Transactional(readOnly = true)
     public ScheduleGetResponse findOne(Long scheduleId) {
         Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
-            () -> new IllegalStateException("해당 일정이 없습니다."));
+            () -> new ScheduleNotFoundException("일정을 찾을 수 없습니다."));
 
         return new ScheduleGetResponse(
             schedule.getId(),
@@ -76,10 +77,10 @@ public class ScheduleService {
         validateLogin(sessionUser);
 
         Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
-            () -> new IllegalStateException("해당 일정이 없습니다."));
+            () -> new ScheduleNotFoundException("일정을 찾을 수 없습니다."));
 
         if (!sessionUser.getId().equals(schedule.getUser().getId())) {
-            throw new IllegalStateException("작성한 유저가 아닙니다.");
+            throw new ForbiddenException("일정을 수정할 권한이 없습니다.");
         }
 
         schedule.update(
@@ -100,17 +101,17 @@ public class ScheduleService {
         validateLogin(sessionUser);
 
         Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
-            () -> new IllegalStateException("해당 일정이 없습니다."));
+            () -> new ScheduleNotFoundException("일정을 찾을 수 없습니다."));
 
         if (!sessionUser.getId().equals(schedule.getUser().getId())) {
-            throw new IllegalStateException("작성한 유저가 아닙니다.");
+            throw new ForbiddenException("일정을 삭제할 권한이 없습니다.");
         }
         scheduleRepository.delete(schedule);
     }
 
     private void validateLogin(SessionUser sessionUser) {
         if (sessionUser == null) {
-            throw new IllegalStateException("로그인이 필요합니다.");
+            throw new UnauthorizedException("로그인이 필요합니다.");
         }
     }
 }

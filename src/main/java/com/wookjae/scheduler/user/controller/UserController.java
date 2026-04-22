@@ -49,12 +49,7 @@ public class UserController {
     }
 
     @PostMapping("/users/logout")
-    public ResponseEntity<Void> logout(
-        @SessionAttribute(name = "loginUser", required = false) SessionUser sessionUser, HttpSession session
-    ) {
-        if (sessionUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+    public ResponseEntity<Void> logout(HttpSession session) {
         session.invalidate();
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
@@ -76,9 +71,6 @@ public class UserController {
         @SessionAttribute(name = "loginUser", required = false) SessionUser sessionUser,
         @Valid @RequestBody UserUpdateRequest request
     ) {
-        if (sessionUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
         return ResponseEntity.status(HttpStatus.OK).body(userService.update(sessionUser, request));
     }
 
@@ -87,9 +79,6 @@ public class UserController {
         @SessionAttribute(name = "loginUser", required = false) SessionUser sessionUser,
         @Valid @RequestBody UserDeleteRequest request
     ) {
-        if (sessionUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
         userService.delete(sessionUser, request);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

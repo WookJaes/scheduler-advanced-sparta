@@ -1,6 +1,7 @@
 package com.wookjae.scheduler.user.service;
 
 import com.wookjae.scheduler.global.config.PasswordEncoder;
+import com.wookjae.scheduler.global.exception.*;
 import com.wookjae.scheduler.user.dto.SessionUser;
 import com.wookjae.scheduler.user.dto.UserLoginRequest;
 import com.wookjae.scheduler.user.dto.UserSignUpRequest;
@@ -25,6 +26,11 @@ public class UserService {
 
     @Transactional
     public UserSignUpResponse signup(UserSignUpRequest request) {
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new DuplicateEmailException("이미 사용 중인 이메일입니다.");
+        }
+
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
         User user = new User(
@@ -42,14 +48,13 @@ public class UserService {
             savedUser.getModifiedAt()
         );
     }
-
     @Transactional(readOnly = true)
     public SessionUser login(UserLoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail()).orElseThrow(
-            () -> new IllegalStateException("이메일 또는 비밀번호가 올바르지 않습니다."));
+            () -> new UnauthorizedException("이메일 또는 비밀번호가 올바르지 않습니다."));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new IllegalStateException("이메일 또는 비밀번호가 올바르지 않습니다.");
+            throw new UnauthorizedException("이메일 또는 비밀번호가 올바르지 않습니다.");
         }
 
         return new SessionUser(
@@ -62,6 +67,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public List<UserGetResponse> findAll() {
         List<User> users = userRepository.findAll();
+
         return users.stream()
             .map(user -> new UserGetResponse(
                 user.getId(),
@@ -75,7 +81,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserGetResponse findOne(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(
-            () -> new IllegalStateException("없는 유저입니다."));
+            () -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
 
         return new UserGetResponse(
             user.getId(),
@@ -91,10 +97,10 @@ public class UserService {
         validateLogin(sessionUser);
 
         User user = userRepository.findById(sessionUser.getId()).orElseThrow(
-            () -> new IllegalStateException("존재하지 않는 유저입니다."));
+            () -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new IllegalStateException("비밀번호가 일치하지 않습니다.");
+            throw new UnauthorizedException("비밀번호가 일치하지 않습니다.");
         }
 
         user.update(request.getName());
@@ -112,15 +118,10 @@ public class UserService {
         validateLogin(sessionUser);
 
         User user = userRepository.findById(sessionUser.getId()).orElseThrow(
-            () -> new IllegalStateException("존재하지 않는 유저입니다.")
-        );
-
-        if (!request.getEmail().equals(user.getEmail())) {
-            throw new IllegalStateException("이메일이 같지 않습니다.");
-        }
+            () -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new IllegalStateException("비밀번호가 일치하지 않습니다.");
+            throw new UnauthorizedException("비밀번호가 일치하지 않습니다.");
         }
 
         userRepository.delete(user);
@@ -128,7 +129,7 @@ public class UserService {
 
     private void validateLogin(SessionUser sessionUser) {
         if (sessionUser == null) {
-            throw new IllegalStateException("로그인이 필요합니다.");
+            throw new UnauthorizedException("로그인이 필요합니다.");
         }
     }
 }

@@ -7,6 +7,7 @@ import com.wookjae.scheduler.comment.dto.CommentUpdateRequest;
 import com.wookjae.scheduler.comment.dto.CommentUpdateResponse;
 import com.wookjae.scheduler.comment.service.CommentService;
 import com.wookjae.scheduler.user.dto.SessionUser;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,7 +31,7 @@ public class CommentController {
     public ResponseEntity<CommentCreateResponse> create(
         @PathVariable Long scheduleId,
         @SessionAttribute(name = "loginUser", required = false) SessionUser sessionUser,
-        @RequestBody CommentCreateRequest request
+        @Valid @RequestBody CommentCreateRequest request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(commentService.save(scheduleId, sessionUser, request));
     }
@@ -47,7 +48,7 @@ public class CommentController {
         @PathVariable Long scheduleId,
         @PathVariable Long commentId,
         @SessionAttribute(name = "loginUser", required = false) SessionUser sessionUser,
-        @RequestBody CommentUpdateRequest request
+        @Valid @RequestBody CommentUpdateRequest request
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(commentService.update(scheduleId, commentId, sessionUser, request));
     }
