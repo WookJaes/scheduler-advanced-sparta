@@ -1,6 +1,6 @@
-# Schedule App
+# Scheduler App API
 
-Spring Boot와 JPA를 기반으로 일정 관리와 유저 관리, 그리고 세션 기반 로그인 기능을 제공하는 일정 관리 애플리케이션입니다.
+Spring Boot와 JPA를 기반으로 일정 및 유저 관리 기능과 세션 기반 인증을 제공하는 API 프로젝트입니다.
 <br/><br/>
 
 ## 개발 환경
@@ -44,19 +44,19 @@ Base URL: `http://localhost:8080`
 | --- | --- | --- | --- | --- | --- | --- |
 | 회원가입 | `POST` | `/users/signup` | - | `{ "name": "김철수", "email": "abc@gmail.com", "password": "1q2w3e4r" }` | `{ "id": 1, "name": "김철수", "email": "abc@gmail.com", "createdAt": "2026-04-22T14:22:45.769935", "modifiedAt": "2026-04-22T14:22:45.769935" }` | `201 Created`<br>`400 Bad Request`<br>`409 Conflict` |
 | 유저 목록 조회 | `GET` | `/users` | - | - | `[ { "id": 1, "name": "김철수", "email": "abc@gmail.com", "createdAt": "2026-04-22T14:22:45.769936", "modifiedAt": "2026-04-22T14:22:45.769936" } ]` | `200 OK` |
-| 단건 유저 조회 | `GET` | `/users/{userId}` | Path: `userId` | - | `{ "id": 1, "name": "김철수", "email": "abc@gmail.com", "createdAt": "2026-04-22T14:22:45.769936", "modifiedAt": "2026-04-22T14:22:45.769936" }` | `200 OK`<br>`404 Not Found` |
+| 유저 단건 조회 | `GET` | `/users/{userId}` | Path: `userId` | - | `{ "id": 1, "name": "김철수", "email": "abc@gmail.com", "createdAt": "2026-04-22T14:22:45.769936", "modifiedAt": "2026-04-22T14:22:45.769936" }` | `200 OK`<br>`404 Not Found` |
 | 회원 정보 수정 | `PUT` | `/users` | Session: `LOGIN_USER` | `{ "name": "김민수", "password": "1q2w3e4r" }` | `{ "id": 1, "name": "김민수", "email": "abc@gmail.com", "createdAt": "2026-04-22T14:22:45.769936", "modifiedAt": "2026-04-22T14:22:45.769936" }` | `200 OK`<br>`400 Bad Request`<br>`401 Unauthorized` |
-| 회원 탈퇴 | `DELETE` | `/users` | Session: `LOGIN_USER` | `{ "email": "abc@gmail.com", "password": "1q2w3e4r" }` | - | `200 OK`<br>`400 Bad Request`<br>`401 Unauthorized` |
+| 회원 탈퇴 | `DELETE` | `/users` | Session: `LOGIN_USER` | `{ "email": "abc@gmail.com", "password": "1q2w3e4r" }` | - | `204 No Content`<br>`400 Bad Request`<br>`401 Unauthorized` |
 <br/>
 
 ### 일정
 | Description | Method | URL | Parameters | Request | Response | Status Code |
 | --- | --- | --- | --- | --- | --- | --- |
 | 일정 생성 | `POST` | `/schedules` | Session: `LOGIN_USER` | `{ "title": "일본 여행", "content": "9월 말 일본 여행" }` | `{ "id": 1, "title": "일본 여행", "content": "9월 말 일본 여행", "createdAt": "2026-04-22T14:28:08.2026219", "modifiedAt": "2026-04-22T14:28:08.2026219" }` | `201 Created`<br>`400 Bad Request`<br>`401 Unauthorized` |
-| 전체 일정 조회 | `GET` | `/schedules` |  Query: `page`, `size` | - | `{ "page": 0, "size": 10, "totalElements": 1, "totalPages": 1, "content": [ { "id": 1, "title": "일본 여행", "content": "9월 말 일본 여행", "commentCount": 0, "createdAt": "2026-04-22T14:28:08.202622", "modifiedAt": "2026-04-22T14:28:08.202622", "userName": "김민수" } ] }` | `200 OK` |
+| 전체 일정 조회 | `GET` | `/schedules` | Query: `page`, `size` | - | `{ "page": 0, "size": 10, "totalElements": 1, "totalPages": 1, "content": [ { "id": 1, "title": "일본 여행", "content": "9월 말 일본 여행", "commentCount": 0, "createdAt": "2026-04-22T14:28:08.202622", "modifiedAt": "2026-04-22T14:28:08.202622", "userName": "김민수" } ] }` | `200 OK` |
 | 단건 일정 조회 | `GET` | `/schedules/{scheduleId}` | Path: `scheduleId` | - | `{ "id": 1, "userId": 1, "title": "일본 여행", "content": "9월 말 일본 여행", "createdAt": "2026-04-22T14:28:08.202622", "modifiedAt": "2026-04-22T14:28:08.202622" }` | `200 OK`<br>`404 Not Found` |
 | 일정 수정 | `PUT` | `/schedules/{scheduleId}` | Path: `scheduleId`<br>Session: `LOGIN_USER` | `{ "userId": 1, "title": "제주도 여행", "content": "7월 말 제주도 여행 일정" }` | `{ "id": 1, "title": "제주도 여행", "content": "7월 말 제주도 여행 일정", "createdAt": "2026-04-22T14:28:08.202622", "modifiedAt": "2026-04-22T14:36:57.698263" }` | `200 OK`<br>`400 Bad Request`<br>`401 Unauthorized`<br>`403 Forbidden`<br>`404 Not Found` |
-| 일정 삭제 | `DELETE` | `/schedules/{scheduleId}` | Path: `scheduleId`<br>Session: `LOGIN_USER` | - | - | `200 OK`<br>`401 Unauthorized` <br>`403 Forbidden`<br>`404 Not Found` |
+| 일정 삭제 | `DELETE` | `/schedules/{scheduleId}` | Path: `scheduleId`<br>Session: `LOGIN_USER` | - | - | `204 No Content`<br>`401 Unauthorized` <br>`403 Forbidden`<br>`404 Not Found` |
 <br/>
 
 ### 댓글
@@ -73,3 +73,48 @@ Base URL: `http://localhost:8080`
 ## ERD
 <img width="1245" height="1111" alt="Image" src="https://github.com/user-attachments/assets/c4d73897-cfec-48fc-a161-84b61a4c2c80" />
 
+<br/>
+
+## 프로젝트 구조
+
+```text
+src/main/java/com/wookjae/scheduler
+├─comment
+│  ├─controller
+│  ├─dto
+│  ├─entity
+│  ├─repository
+│  └─service
+├─global
+│  ├─auth
+│  ├─config
+│  ├─entity
+│  └─exception
+├─schedule
+│  ├─controller
+│  ├─dto
+│  ├─entity
+│  ├─repository
+│  └─service
+├─user
+│   ├─controller
+│   ├─dto
+│   ├─entity
+│   ├─repository
+│   └─service
+└─ SchedulerAdvancedApplication.java
+```
+- **controller**: 클라이언트 요청/응답 처리
+- **service**: 비즈니스 로직 처리 (CRUD)
+- **repository**: 데이터 접근 (JPA)
+- **entity**: DB와 매핑되는 도메인 객체
+- **dto**: 요청/응답 데이터 전달 객체
+- **global**: 전역 공통 기능 관리
+
+  - **auth**: 로그인(세션) 검증
+  
+  - **config**: 비밀번호 암호화 설정 (PasswordEncoder)
+  
+  - **entity**: 공통 엔티티 (Auditing: 생성/수정 시간)
+  
+  - **exception**: 공통 예외 처리
