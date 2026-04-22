@@ -1,5 +1,6 @@
 package com.wookjae.scheduler.schedule.service;
 
+import com.wookjae.scheduler.global.auth.AuthValidator;
 import com.wookjae.scheduler.global.auth.SessionUser;
 import com.wookjae.scheduler.global.exception.*;
 import com.wookjae.scheduler.schedule.dto.ScheduleCreateRequest;
@@ -29,7 +30,7 @@ public class ScheduleService {
 
     @Transactional
     public ScheduleCreateResponse save(SessionUser sessionUser, ScheduleCreateRequest request) {
-        validateLogin(sessionUser);
+        AuthValidator.validateLogin(sessionUser);
         User user = findUserById(sessionUser.getId());
         Schedule schedule = new Schedule(request.getTitle(), request.getContent(), user);
 
@@ -52,7 +53,7 @@ public class ScheduleService {
 
     @Transactional
     public ScheduleUpdateResponse update(Long scheduleId, SessionUser sessionUser, ScheduleUpdateRequest request) {
-        validateLogin(sessionUser);
+        AuthValidator.validateLogin(sessionUser);
         Schedule schedule = findScheduleById(scheduleId);
         validateScheduleOwner(sessionUser, schedule, "일정을 수정할 권한이 없습니다.");
 
@@ -62,7 +63,7 @@ public class ScheduleService {
 
     @Transactional
     public void delete(Long scheduleId, SessionUser sessionUser) {
-        validateLogin(sessionUser);
+        AuthValidator.validateLogin(sessionUser);
         Schedule schedule = findScheduleById(scheduleId);
         validateScheduleOwner(sessionUser, schedule, "일정을 삭제할 권한이 없습니다.");
         schedule.softDelete();
@@ -87,12 +88,6 @@ public class ScheduleService {
     private void validateScheduleOwner(SessionUser sessionUser, Schedule schedule, String message) {
         if (!sessionUser.getId().equals(schedule.getUser().getId())) {
             throw new ForbiddenException(message);
-        }
-    }
-
-    private void validateLogin(SessionUser sessionUser) {
-        if (sessionUser == null) {
-            throw new UnauthorizedException("로그인이 필요합니다.");
         }
     }
 }

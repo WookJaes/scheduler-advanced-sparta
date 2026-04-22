@@ -7,6 +7,7 @@ import com.wookjae.scheduler.comment.dto.CommentUpdateRequest;
 import com.wookjae.scheduler.comment.dto.CommentUpdateResponse;
 import com.wookjae.scheduler.comment.entity.Comment;
 import com.wookjae.scheduler.comment.repository.CommentRepository;
+import com.wookjae.scheduler.global.auth.AuthValidator;
 import com.wookjae.scheduler.global.auth.SessionUser;
 import com.wookjae.scheduler.global.exception.*;
 import com.wookjae.scheduler.schedule.entity.Schedule;
@@ -28,7 +29,7 @@ public class CommentService {
 
     @Transactional
     public CommentCreateResponse save(Long scheduleId, SessionUser sessionUser, CommentCreateRequest request) {
-        validateLogin(sessionUser);
+        AuthValidator.validateLogin(sessionUser);
         User user = findUserById(sessionUser.getId());
         Schedule schedule = findScheduleById(scheduleId);
 
@@ -48,7 +49,7 @@ public class CommentService {
 
     @Transactional
     public CommentUpdateResponse update(Long scheduleId, Long commentId, SessionUser sessionUser, CommentUpdateRequest request) {
-        validateLogin(sessionUser);
+        AuthValidator.validateLogin(sessionUser);
         Comment comment = findCommentById(commentId);
         validateCommentSchedule(scheduleId, comment);
         validateCommentOwner(sessionUser, comment, "댓글을 수정할 권한이 없습니다.");
@@ -59,7 +60,7 @@ public class CommentService {
 
     @Transactional
     public void delete(Long scheduleId, Long commentId, SessionUser sessionUser) {
-        validateLogin(sessionUser);
+        AuthValidator.validateLogin(sessionUser);
         Comment comment = findCommentById(commentId);
         validateCommentSchedule(scheduleId, comment);
         validateCommentOwner(sessionUser, comment, "댓글을 삭제할 권한이 없습니다.");
@@ -97,12 +98,6 @@ public class CommentService {
     private void validateCommentOwner(SessionUser sessionUser, Comment comment, String message) {
         if (!comment.getUser().getId().equals(sessionUser.getId())) {
             throw new ForbiddenException(message);
-        }
-    }
-
-    private void validateLogin(SessionUser sessionUser) {
-        if (sessionUser == null) {
-            throw new UnauthorizedException("로그인이 필요합니다.");
         }
     }
 }

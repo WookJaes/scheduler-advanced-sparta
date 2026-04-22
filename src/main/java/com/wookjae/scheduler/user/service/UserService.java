@@ -1,5 +1,6 @@
 package com.wookjae.scheduler.user.service;
 
+import com.wookjae.scheduler.global.auth.AuthValidator;
 import com.wookjae.scheduler.global.auth.SessionUser;
 import com.wookjae.scheduler.global.config.PasswordEncoder;
 import com.wookjae.scheduler.global.exception.*;
@@ -56,7 +57,7 @@ public class UserService {
 
     @Transactional
     public UserUpdateResponse update(SessionUser sessionUser, UserUpdateRequest request) {
-        validateLogin(sessionUser);
+        AuthValidator.validateLogin(sessionUser);
         User user = findUserById(sessionUser.getId());
         validatePassword(request.getPassword(), user.getPassword(), "비밀번호가 일치하지 않습니다.");
 
@@ -66,7 +67,7 @@ public class UserService {
 
     @Transactional
     public void delete(SessionUser sessionUser, UserDeleteRequest request) {
-        validateLogin(sessionUser);
+        AuthValidator.validateLogin(sessionUser);
         User user = findUserById(sessionUser.getId());
         validatePassword(request.getPassword(), user.getPassword(), "비밀번호가 일치하지 않습니다.");
         user.softDelete();
@@ -92,12 +93,6 @@ public class UserService {
     private void validatePassword(String rawPassword, String encodedPassword, String message) {
         if (!passwordEncoder.matches(rawPassword, encodedPassword)) {
             throw new UnauthorizedException(message);
-        }
-    }
-
-    private void validateLogin(SessionUser sessionUser) {
-        if (sessionUser == null) {
-            throw new UnauthorizedException("로그인이 필요합니다.");
         }
     }
 }
