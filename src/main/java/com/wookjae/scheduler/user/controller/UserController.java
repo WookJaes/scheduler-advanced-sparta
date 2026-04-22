@@ -1,6 +1,7 @@
 package com.wookjae.scheduler.user.controller;
 
-import com.wookjae.scheduler.user.dto.SessionUser;
+import com.wookjae.scheduler.global.auth.SessionConst;
+import com.wookjae.scheduler.global.auth.SessionUser;
 import com.wookjae.scheduler.user.dto.UserLoginRequest;
 import com.wookjae.scheduler.user.dto.UserSignUpRequest;
 import com.wookjae.scheduler.user.dto.UserSignUpResponse;
@@ -43,7 +44,7 @@ public class UserController {
         @Valid @RequestBody UserLoginRequest request, HttpSession session
     ) {
         SessionUser sessionUser = userService.login(request);
-        session.setAttribute("loginUser", sessionUser);
+        session.setAttribute(SessionConst.LOGIN_USER, sessionUser);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -68,7 +69,7 @@ public class UserController {
 
     @PutMapping("/users")
     public ResponseEntity<UserUpdateResponse> update(
-        @SessionAttribute(name = "loginUser", required = false) SessionUser sessionUser,
+        @SessionAttribute(name = SessionConst.LOGIN_USER, required = false) SessionUser sessionUser,
         @Valid @RequestBody UserUpdateRequest request
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.update(sessionUser, request));
@@ -76,7 +77,7 @@ public class UserController {
 
     @DeleteMapping("/users")
     public ResponseEntity<Void> delete(
-        @SessionAttribute(name = "loginUser", required = false) SessionUser sessionUser,
+        @SessionAttribute(name = SessionConst.LOGIN_USER, required = false) SessionUser sessionUser,
         @Valid @RequestBody UserDeleteRequest request
     ) {
         userService.delete(sessionUser, request);

@@ -1,5 +1,6 @@
 package com.wookjae.scheduler.schedule.dto;
 
+import com.wookjae.scheduler.schedule.entity.Schedule;
 import java.time.LocalDateTime;
 import lombok.Getter;
 
@@ -21,5 +22,16 @@ public class ScheduleGetResponse {
         this.content = content;
         this.createdAt = createdAt;
         this.modifiedAt = modifiedAt;
+    }
+
+    public static ScheduleGetResponse from(Schedule schedule) {
+        return new ScheduleGetResponse(
+            schedule.getId(),
+            schedule.getUser().getId(),
+            schedule.getTitle(),
+            schedule.getContent(),
+            schedule.getCreatedAt(),
+            schedule.getModifiedAt()
+        );
     }
 }

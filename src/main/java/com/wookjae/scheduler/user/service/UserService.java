@@ -2,7 +2,7 @@ package com.wookjae.scheduler.user.service;
 
 import com.wookjae.scheduler.global.config.PasswordEncoder;
 import com.wookjae.scheduler.global.exception.*;
-import com.wookjae.scheduler.user.dto.SessionUser;
+import com.wookjae.scheduler.global.auth.SessionUser;
 import com.wookjae.scheduler.user.dto.UserLoginRequest;
 import com.wookjae.scheduler.user.dto.UserSignUpRequest;
 import com.wookjae.scheduler.user.dto.UserSignUpResponse;
@@ -26,105 +26,73 @@ public class UserService {
 
     @Transactional
     public UserSignUpResponse signup(UserSignUpRequest request) {
-
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new DuplicateEmailException("이미 사용 중인 이메일입니다.");
-        }
-
+        validateDuplicateEmail(request.getEmail());
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
-        User user = new User(
-            request.getName(),
-            request.getEmail(),
-            encodedPassword
-        );
-
+        User user = new User(request.getName(), request.getEmail(), encodedPassword);
         User savedUser = userRepository.save(user);
-        return new UserSignUpResponse(
-            savedUser.getId(),
-            savedUser.getName(),
-            savedUser.getEmail(),
-            savedUser.getCreatedAt(),
-            savedUser.getModifiedAt()
-        );
+        return UserSignUpResponse.from(savedUser);
     }
+
     @Transactional(readOnly = true)
     public SessionUser login(UserLoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail()).orElseThrow(
-            () -> new UnauthorizedException("이메일 또는 비밀번호가 올바르지 않습니다."));
-
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new UnauthorizedException("이메일 또는 비밀번호가 올바르지 않습니다.");
-        }
-
-        return new SessionUser(
-            user.getId(),
-            user.getName(),
-            user.getEmail()
-        );
+        User user = findUserByEmail(request.getEmail());
+        validatePassword(request.getPassword(), user.getPassword(), "이메일 또는 비밀번호가 올바르지 않습니다.");
+        return new SessionUser(user.getId(), user.getName(), user.getEmail());
     }
 
     @Transactional(readOnly = true)
     public List<UserGetResponse> findAll() {
-        List<User> users = userRepository.findAll();
-
-        return users.stream()
-            .map(user -> new UserGetResponse(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                user.getCreatedAt(),
-                user.getModifiedAt()
-            )).toList();
+        return userRepository.findAll().stream()
+            .map(UserGetResponse::from)
+            .toList();
     }
 
     @Transactional(readOnly = true)
     public UserGetResponse findOne(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(
-            () -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
-
-        return new UserGetResponse(
-            user.getId(),
-            user.getName(),
-            user.getEmail(),
-            user.getCreatedAt(),
-            user.getModifiedAt()
-        );
+        User user = findUserById(userId);
+        return UserGetResponse.from(user);
     }
 
     @Transactional
     public UserUpdateResponse update(SessionUser sessionUser, UserUpdateRequest request) {
         validateLogin(sessionUser);
-
-        User user = userRepository.findById(sessionUser.getId()).orElseThrow(
-            () -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
-
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new UnauthorizedException("비밀번호가 일치하지 않습니다.");
-        }
+        User user = findUserById(sessionUser.getId());
+        validatePassword(request.getPassword(), user.getPassword(), "비밀번호가 일치하지 않습니다.");
 
         user.update(request.getName());
-        return new UserUpdateResponse(
-            user.getId(),
-            user.getName(),
-            user.getEmail(),
-            user.getCreatedAt(),
-            user.getModifiedAt()
-        );
+        return UserUpdateResponse.from(user);
     }
 
     @Transactional
     public void delete(SessionUser sessionUser, UserDeleteRequest request) {
         validateLogin(sessionUser);
-
-        User user = userRepository.findById(sessionUser.getId()).orElseThrow(
-            () -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
-
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new UnauthorizedException("비밀번호가 일치하지 않습니다.");
-        }
-
+        User user = findUserById(sessionUser.getId());
+        validatePassword(request.getPassword(), user.getPassword(), "비밀번호가 일치하지 않습니다.");
         userRepository.delete(user);
+    }
+
+    private void validateDuplicateEmail(String email) {
+        if (userRepository.existsByEmail(email)) {
+            throw new DuplicateEmailException("이미 사용 중인 이메일입니다.");
+        }
+    }
+
+    private User findUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+            .orElseThrow(() -> new UnauthorizedException("이메일 또는 비밀번호가 올바르지 않습니다."));
+    }
+
+    private User findUserById(Long userId) {
+        return userRepository.findById(userId).orElseThrow(
+            () -> new UserNotFoundException("사용자를 찾을 수 없습니다.")
+        );
+    }
+
+    private void validatePassword(String rawPassword, String encodedPassword, String message) {
+        if (!passwordEncoder.matches(rawPassword, encodedPassword)) {
+            throw new UnauthorizedException(message);
+        }
     }
 
     private void validateLogin(SessionUser sessionUser) {

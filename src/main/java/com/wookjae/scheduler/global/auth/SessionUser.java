@@ -1,4 +1,4 @@
-package com.wookjae.scheduler.user.dto;
+package com.wookjae.scheduler.global.auth;
 
 import lombok.Getter;
 

@@ -6,7 +6,8 @@ import com.wookjae.scheduler.comment.dto.CommentGetResponse;
 import com.wookjae.scheduler.comment.dto.CommentUpdateRequest;
 import com.wookjae.scheduler.comment.dto.CommentUpdateResponse;
 import com.wookjae.scheduler.comment.service.CommentService;
-import com.wookjae.scheduler.user.dto.SessionUser;
+import com.wookjae.scheduler.global.auth.SessionConst;
+import com.wookjae.scheduler.global.auth.SessionUser;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,7 @@ public class CommentController {
     @PostMapping("/schedules/{scheduleId}/comments")
     public ResponseEntity<CommentCreateResponse> create(
         @PathVariable Long scheduleId,
-        @SessionAttribute(name = "loginUser", required = false) SessionUser sessionUser,
+        @SessionAttribute(name = SessionConst.LOGIN_USER, required = false) SessionUser sessionUser,
         @Valid @RequestBody CommentCreateRequest request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(commentService.save(scheduleId, sessionUser, request));
@@ -47,7 +48,7 @@ public class CommentController {
     public ResponseEntity<CommentUpdateResponse> update(
         @PathVariable Long scheduleId,
         @PathVariable Long commentId,
-        @SessionAttribute(name = "loginUser", required = false) SessionUser sessionUser,
+        @SessionAttribute(name = SessionConst.LOGIN_USER, required = false) SessionUser sessionUser,
         @Valid @RequestBody CommentUpdateRequest request
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(commentService.update(scheduleId, commentId, sessionUser, request));
@@ -57,7 +58,7 @@ public class CommentController {
     public ResponseEntity<Void> delete(
         @PathVariable Long scheduleId,
         @PathVariable Long commentId,
-        @SessionAttribute(name = "loginUser", required = false) SessionUser sessionUser
+        @SessionAttribute(name = SessionConst.LOGIN_USER, required = false) SessionUser sessionUser
     ) {
         commentService.delete(scheduleId, commentId, sessionUser);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();

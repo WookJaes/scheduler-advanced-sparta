@@ -9,7 +9,7 @@ import com.wookjae.scheduler.schedule.dto.ScheduleUpdateRequest;
 import com.wookjae.scheduler.schedule.dto.ScheduleUpdateResponse;
 import com.wookjae.scheduler.schedule.entity.Schedule;
 import com.wookjae.scheduler.schedule.repository.ScheduleRepository;
-import com.wookjae.scheduler.user.dto.SessionUser;
+import com.wookjae.scheduler.global.auth.SessionUser;
 import com.wookjae.scheduler.user.entity.User;
 import com.wookjae.scheduler.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,24 +30,11 @@ public class ScheduleService {
     @Transactional
     public ScheduleCreateResponse save(SessionUser sessionUser, ScheduleCreateRequest request) {
         validateLogin(sessionUser);
-
-        User user = userRepository.findById(sessionUser.getId()).orElseThrow(
-            () -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
-
-        Schedule schedule = new Schedule(
-            request.getTitle(),
-            request.getContent(),
-            user
-        );
+        User user = findUserById(sessionUser.getId());
+        Schedule schedule = new Schedule(request.getTitle(), request.getContent(), user);
 
         Schedule savedSchedule = scheduleRepository.save(schedule);
-        return new ScheduleCreateResponse(
-            savedSchedule.getId(),
-            savedSchedule.getTitle(),
-            savedSchedule.getContent(),
-            savedSchedule.getCreatedAt(),
-            savedSchedule.getModifiedAt()
-        );
+        return ScheduleCreateResponse.from(savedSchedule);
     }
 
     @Transactional(readOnly = true)
@@ -59,54 +46,42 @@ public class ScheduleService {
 
     @Transactional(readOnly = true)
     public ScheduleGetResponse findOne(Long scheduleId) {
-        Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
-            () -> new ScheduleNotFoundException("일정을 찾을 수 없습니다."));
-
-        return new ScheduleGetResponse(
-            schedule.getId(),
-            schedule.getUser().getId(),
-            schedule.getTitle(),
-            schedule.getContent(),
-            schedule.getCreatedAt(),
-            schedule.getModifiedAt()
-        );
+        Schedule schedule = findScheduleById(scheduleId);
+        return ScheduleGetResponse.from(schedule);
     }
 
     @Transactional
     public ScheduleUpdateResponse update(Long scheduleId, SessionUser sessionUser, ScheduleUpdateRequest request) {
         validateLogin(sessionUser);
+        Schedule schedule = findScheduleById(scheduleId);
+        validateScheduleOwner(sessionUser, schedule, "일정을 수정할 권한이 없습니다.");
 
-        Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
-            () -> new ScheduleNotFoundException("일정을 찾을 수 없습니다."));
-
-        if (!sessionUser.getId().equals(schedule.getUser().getId())) {
-            throw new ForbiddenException("일정을 수정할 권한이 없습니다.");
-        }
-
-        schedule.update(
-            request.getTitle(),
-            request.getContent()
-        );
-        return new ScheduleUpdateResponse(
-            schedule.getId(),
-            schedule.getTitle(),
-            schedule.getContent(),
-            schedule.getCreatedAt(),
-            schedule.getModifiedAt()
-        );
+        schedule.update(request.getTitle(), request.getContent());
+        return ScheduleUpdateResponse.from(schedule);
     }
 
     @Transactional
     public void delete(Long scheduleId, SessionUser sessionUser) {
         validateLogin(sessionUser);
-
-        Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
-            () -> new ScheduleNotFoundException("일정을 찾을 수 없습니다."));
-
-        if (!sessionUser.getId().equals(schedule.getUser().getId())) {
-            throw new ForbiddenException("일정을 삭제할 권한이 없습니다.");
-        }
+        Schedule schedule = findScheduleById(scheduleId);
+        validateScheduleOwner(sessionUser, schedule, "일정을 삭제할 권한이 없습니다.");
         scheduleRepository.delete(schedule);
+    }
+
+    private User findUserById(Long userId) {
+        return userRepository.findById(userId).orElseThrow(
+            () -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+    }
+
+    private Schedule findScheduleById(Long scheduleId) {
+        return scheduleRepository.findById(scheduleId).orElseThrow(
+            () -> new ScheduleNotFoundException("일정을 찾을 수 없습니다."));
+    }
+
+    private void validateScheduleOwner(SessionUser sessionUser, Schedule schedule, String message) {
+        if (!sessionUser.getId().equals(schedule.getUser().getId())) {
+            throw new ForbiddenException(message);
+        }
     }
 
     private void validateLogin(SessionUser sessionUser) {

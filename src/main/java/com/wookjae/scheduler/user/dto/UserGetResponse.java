@@ -1,5 +1,6 @@
 package com.wookjae.scheduler.user.dto;
 
+import com.wookjae.scheduler.user.entity.User;
 import java.time.LocalDateTime;
 import lombok.Getter;
 
@@ -19,5 +20,15 @@ public class UserGetResponse {
         this.email = email;
         this.createdAt = createdAt;
         this.modifiedAt = modifiedAt;
+    }
+
+    public static UserGetResponse from(User user) {
+        return new UserGetResponse(
+            user.getId(),
+            user.getName(),
+            user.getEmail(),
+            user.getCreatedAt(),
+            user.getModifiedAt()
+        );
     }
 }

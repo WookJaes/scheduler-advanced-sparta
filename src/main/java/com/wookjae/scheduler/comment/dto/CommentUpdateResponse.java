@@ -1,5 +1,6 @@
 package com.wookjae.scheduler.comment.dto;
 
+import com.wookjae.scheduler.comment.entity.Comment;
 import java.time.LocalDateTime;
 import lombok.Getter;
 
@@ -21,5 +22,16 @@ public class CommentUpdateResponse {
         this.scheduleId = scheduleId;
         this.createdAt = createdAt;
         this.modifiedAt = modifiedAt;
+    }
+
+    public static CommentUpdateResponse from(Comment comment) {
+        return new CommentUpdateResponse(
+            comment.getId(),
+            comment.getContent(),
+            comment.getUser().getId(),
+            comment.getSchedule().getId(),
+            comment.getCreatedAt(),
+            comment.getModifiedAt()
+        );
     }
 }

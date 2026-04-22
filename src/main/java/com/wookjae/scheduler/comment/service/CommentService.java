@@ -10,7 +10,7 @@ import com.wookjae.scheduler.comment.repository.CommentRepository;
 import com.wookjae.scheduler.global.exception.*;
 import com.wookjae.scheduler.schedule.entity.Schedule;
 import com.wookjae.scheduler.schedule.repository.ScheduleRepository;
-import com.wookjae.scheduler.user.dto.SessionUser;
+import com.wookjae.scheduler.global.auth.SessionUser;
 import com.wookjae.scheduler.user.entity.User;
 import com.wookjae.scheduler.user.repository.UserRepository;
 import java.util.List;
@@ -28,96 +28,67 @@ public class CommentService {
 
     @Transactional
     public CommentCreateResponse save(Long scheduleId, SessionUser sessionUser, CommentCreateRequest request) {
-
         validateLogin(sessionUser);
+        User user = findUserById(sessionUser.getId());
+        Schedule schedule = findScheduleById(scheduleId);
 
-        User user = userRepository.findById(sessionUser.getId()).orElseThrow(
-            () -> new UserNotFoundException("사용자를 찾을 수 없습니다.")
-        );
-
-        Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
-            () -> new ScheduleNotFoundException("일정을 찾을 수 없습니다.")
-        );
-
-        Comment comment = new Comment(
-            request.getContent(),
-            user,
-            schedule
-        );
-
+        Comment comment = new Comment(request.getContent(), user, schedule);
         Comment savedComment = commentRepository.save(comment);
-        return new CommentCreateResponse(
-            savedComment.getId(),
-            savedComment.getContent(),
-            savedComment.getUser().getId(),
-            savedComment.getSchedule().getId(),
-            savedComment.getCreatedAt(),
-            savedComment.getModifiedAt()
-        );
+        return CommentCreateResponse.from(savedComment);
     }
 
     @Transactional(readOnly = true)
     public List<CommentGetResponse> findAll(Long scheduleId) {
-        List<Comment> comments = commentRepository.findAllByScheduleId(scheduleId);
-
-        return comments.stream()
-            .map(comment -> new CommentGetResponse(
-                comment.getId(),
-                comment.getContent(),
-                comment.getUser().getId(),
-                comment.getSchedule().getId(),
-                comment.getCreatedAt(),
-                comment.getModifiedAt()
-            )).toList();
+        return commentRepository.findAllByScheduleId(scheduleId).stream()
+            .map(CommentGetResponse::from)
+            .toList();
     }
 
     @Transactional
     public CommentUpdateResponse update(Long scheduleId, Long commentId, SessionUser sessionUser, CommentUpdateRequest request) {
-
         validateLogin(sessionUser);
-
-        Comment comment = commentRepository.findById(commentId).orElseThrow(
-            () -> new CommentNotFoundException("댓글을 찾을 수 없습니다.")
-        );
-
-        if (!comment.getSchedule().getId().equals(scheduleId)) {
-            throw new BadRequestException("해당 일정의 댓글이 아닙니다.");
-        }
-
-        if (!comment.getUser().getId().equals(sessionUser.getId())) {
-            throw new ForbiddenException("댓글을 수정할 권한이 없습니다.");
-        }
+        Comment comment = findCommentById(commentId);
+        validateCommentSchedule(scheduleId, comment);
+        validateCommentOwner(sessionUser, comment, "댓글을 수정할 권한이 없습니다.");
 
         comment.update(request.getContent());
-
-        return new CommentUpdateResponse(
-            comment.getId(),
-            comment.getContent(),
-            comment.getUser().getId(),
-            comment.getSchedule().getId(),
-            comment.getCreatedAt(),
-            comment.getModifiedAt()
-        );
+        return CommentUpdateResponse.from(comment);
     }
 
     @Transactional
     public void delete(Long scheduleId, Long commentId, SessionUser sessionUser) {
-
         validateLogin(sessionUser);
+        Comment comment = findCommentById(commentId);
+        validateCommentSchedule(scheduleId, comment);
+        validateCommentOwner(sessionUser, comment, "댓글을 삭제할 권한이 없습니다.");
+        commentRepository.delete(comment);
+    }
 
-        Comment comment = commentRepository.findById(commentId).orElseThrow(
-            () -> new CommentNotFoundException("댓글을 찾을 수 없습니다.")
-        );
+    private User findUserById(Long userId) {
+        return userRepository.findById(userId).orElseThrow(
+            () -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+    }
 
+    private Schedule findScheduleById(Long scheduleId) {
+        return scheduleRepository.findById(scheduleId).orElseThrow(
+            () -> new ScheduleNotFoundException("일정을 찾을 수 없습니다."));
+    }
+
+    private Comment findCommentById(Long commentId) {
+        return commentRepository.findById(commentId).orElseThrow(
+            () -> new CommentNotFoundException("댓글을 찾을 수 없습니다."));
+    }
+
+    private void validateCommentSchedule(Long scheduleId, Comment comment) {
         if (!comment.getSchedule().getId().equals(scheduleId)) {
             throw new BadRequestException("해당 일정의 댓글이 아닙니다.");
         }
+    }
 
+    private void validateCommentOwner(SessionUser sessionUser, Comment comment, String message) {
         if (!comment.getUser().getId().equals(sessionUser.getId())) {
-            throw new ForbiddenException("댓글을 삭제할 권한이 없습니다.");
+            throw new ForbiddenException(message);
         }
-
-        commentRepository.delete(comment);
     }
 
     private void validateLogin(SessionUser sessionUser) {

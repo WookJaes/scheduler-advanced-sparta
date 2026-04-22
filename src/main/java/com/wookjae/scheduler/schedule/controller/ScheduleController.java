@@ -7,7 +7,8 @@ import com.wookjae.scheduler.schedule.dto.SchedulePageResponse;
 import com.wookjae.scheduler.schedule.dto.ScheduleUpdateRequest;
 import com.wookjae.scheduler.schedule.dto.ScheduleUpdateResponse;
 import com.wookjae.scheduler.schedule.service.ScheduleService;
-import com.wookjae.scheduler.user.dto.SessionUser;
+import com.wookjae.scheduler.global.auth.SessionConst;
+import com.wookjae.scheduler.global.auth.SessionUser;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,7 +32,7 @@ public class ScheduleController {
 
     @PostMapping("/schedules")
     public ResponseEntity<ScheduleCreateResponse> create(
-        @SessionAttribute(name = "loginUser", required = false) SessionUser sessionUser,
+        @SessionAttribute(name = SessionConst.LOGIN_USER, required = false) SessionUser sessionUser,
         @Valid @RequestBody ScheduleCreateRequest request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(scheduleService.save(sessionUser, request));
@@ -55,7 +56,7 @@ public class ScheduleController {
     @PutMapping("/schedules/{scheduleId}")
     public ResponseEntity<ScheduleUpdateResponse> update(
         @PathVariable Long scheduleId,
-        @SessionAttribute(name = "loginUser", required = false) SessionUser sessionUser,
+        @SessionAttribute(name = SessionConst.LOGIN_USER, required = false) SessionUser sessionUser,
         @Valid @RequestBody ScheduleUpdateRequest request
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(scheduleService.update(scheduleId, sessionUser, request));
@@ -64,7 +65,7 @@ public class ScheduleController {
     @DeleteMapping("/schedules/{scheduleId}")
     public ResponseEntity<Void> delete(
         @PathVariable Long scheduleId,
-        @SessionAttribute(name = "loginUser", required = false) SessionUser sessionUser
+        @SessionAttribute(name = SessionConst.LOGIN_USER, required = false) SessionUser sessionUser
     ) {
         scheduleService.delete(scheduleId, sessionUser);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
