@@ -1,5 +1,6 @@
 package com.wookjae.scheduler.user.controller;
 
+import com.wookjae.scheduler.global.auth.AuthValidator;
 import com.wookjae.scheduler.global.auth.SessionConst;
 import com.wookjae.scheduler.global.auth.SessionUser;
 import com.wookjae.scheduler.user.dto.UserLoginRequest;
@@ -50,7 +51,10 @@ public class UserController {
     }
 
     @PostMapping("/users/logout")
-    public ResponseEntity<Void> logout(HttpSession session) {
+    public ResponseEntity<Void> logout(
+        @SessionAttribute(name = SessionConst.LOGIN_USER, required = false) SessionUser sessionUser, HttpSession session
+    ) {
+        AuthValidator.validateLogin(sessionUser);
         session.invalidate();
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
@@ -78,9 +82,10 @@ public class UserController {
     @DeleteMapping("/users")
     public ResponseEntity<Void> delete(
         @SessionAttribute(name = SessionConst.LOGIN_USER, required = false) SessionUser sessionUser,
-        @Valid @RequestBody UserDeleteRequest request
+        @Valid @RequestBody UserDeleteRequest request, HttpSession session
     ) {
         userService.delete(sessionUser, request);
+        session.invalidate();
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
