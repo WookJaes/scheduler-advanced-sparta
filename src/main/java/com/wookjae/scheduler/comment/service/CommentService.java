@@ -58,6 +58,7 @@ public class CommentService {
         return CommentUpdateResponse.from(comment);
     }
 
+    // 물리적 삭제가 아닌 soft delete 적용
     @Transactional
     public void delete(Long scheduleId, Long commentId, SessionUser sessionUser) {
         AuthValidator.validateLogin(sessionUser);
@@ -70,7 +71,7 @@ public class CommentService {
 
     private User findUserById(Long userId) {
         return userRepository.findByIdAndDeletedFalse(userId).orElseThrow(
-            () -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+            () -> new UserNotFoundException("유저를 찾을 수 없습니다."));
     }
 
     private Schedule findScheduleById(Long scheduleId) {

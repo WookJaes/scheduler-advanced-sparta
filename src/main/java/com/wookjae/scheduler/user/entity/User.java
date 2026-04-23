@@ -25,6 +25,7 @@ public class User extends BaseEntity {
     private String email;
     private String password;
 
+    // soft delete (true = 삭제된 유저, 실제 DB 삭제하지 않음)
     @Column(nullable = false)
     private boolean deleted = false;
 
@@ -38,6 +39,7 @@ public class User extends BaseEntity {
         this.name = name;
     }
 
+    // 삭제 대신 상태값 변경 (FK 제약 회피 목적)
     public void softDelete() {
         this.deleted = true;
     }

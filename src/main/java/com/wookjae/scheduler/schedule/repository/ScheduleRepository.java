@@ -8,8 +8,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+// soft delete 적용
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
 
+    // 일정 목록 조회 (댓글 수 집계 + 작성자 이름 포함, Soft Delete 적용)
     @Query(
         value = """
             select new com.wookjae.scheduler.schedule.dto.SchedulePageResponse(

@@ -27,6 +27,7 @@ public class Comment extends BaseEntity {
     @JoinColumn(name = "schedule_id", nullable = false)
     private Schedule schedule;
 
+    // soft delete (true = 삭제된 댓글, 실제 DB 삭제하지 않음)
     @Column(nullable = false)
     private boolean deleted = false;
 
@@ -40,6 +41,7 @@ public class Comment extends BaseEntity {
         this.content = content;
     }
 
+    // 삭제 대신 상태값 변경 (데이터 보존 및 FK 제약 회피)
     public void softDelete() {
         this.deleted = true;
     }

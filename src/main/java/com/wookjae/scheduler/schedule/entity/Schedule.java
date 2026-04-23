@@ -23,6 +23,7 @@ public class Schedule extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    // soft delete (true = 삭제된 일정, 실제 DB 삭제하지 않음)
     @Column(nullable = false)
     private boolean deleted = false;
 
@@ -37,6 +38,7 @@ public class Schedule extends BaseEntity {
         this.content = content;
     }
 
+    // 삭제 대신 상태값 변경 (데이터 보존)
     public void softDelete() {
         this.deleted = true;
     }

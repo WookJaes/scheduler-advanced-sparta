@@ -55,6 +55,7 @@ public class UserService {
         return UserGetResponse.from(user);
     }
 
+    // 로그인 상태 확인 및 비밀번호 검증 후 유저 정보 수정
     @Transactional
     public UserUpdateResponse update(SessionUser sessionUser, UserUpdateRequest request) {
         AuthValidator.validateLogin(sessionUser);
@@ -65,6 +66,7 @@ public class UserService {
         return UserUpdateResponse.from(user);
     }
 
+    // soft delete (deleted=true)
     @Transactional
     public void delete(SessionUser sessionUser, UserDeleteRequest request) {
         AuthValidator.validateLogin(sessionUser);
@@ -86,7 +88,7 @@ public class UserService {
 
     private User findUserById(Long userId) {
         return userRepository.findByIdAndDeletedFalse(userId).orElseThrow(
-            () -> new UserNotFoundException("사용자를 찾을 수 없습니다.")
+            () -> new UserNotFoundException("유저를 찾을 수 없습니다.")
         );
     }
 

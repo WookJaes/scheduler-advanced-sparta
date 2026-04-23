@@ -28,6 +28,7 @@ public class ScheduleService {
     private final UserRepository userRepository;
     private final ScheduleRepository scheduleRepository;
 
+    // 유저 검증 후 일정 생성
     @Transactional
     public ScheduleCreateResponse save(SessionUser sessionUser, ScheduleCreateRequest request) {
         AuthValidator.validateLogin(sessionUser);
@@ -38,6 +39,7 @@ public class ScheduleService {
         return ScheduleCreateResponse.from(savedSchedule);
     }
 
+    // 페이징 처리된 일정 목록 조회 (수정일 기준 내림차순)
     @Transactional(readOnly = true)
     public Page<SchedulePageResponse> findAll(int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size,
@@ -61,6 +63,7 @@ public class ScheduleService {
         return ScheduleUpdateResponse.from(schedule);
     }
 
+    // 작성자 본인만 soft delete 가능
     @Transactional
     public void delete(Long scheduleId, SessionUser sessionUser) {
         AuthValidator.validateLogin(sessionUser);
@@ -71,7 +74,7 @@ public class ScheduleService {
 
     private User findUserById(Long userId) {
         return userRepository.findByIdAndDeletedFalse(userId).orElseThrow(
-            () -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+            () -> new UserNotFoundException("유저를 찾을 수 없습니다."));
     }
 
     private Schedule findScheduleById(Long scheduleId) {
