@@ -23,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CommentService {
 
+    private static final int MAX_COMMENT_COUNT = 10;
+
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final ScheduleRepository scheduleRepository;
@@ -30,11 +32,15 @@ public class CommentService {
     @Transactional
     public CommentCreateResponse save(Long scheduleId, SessionUser sessionUser, CommentCreateRequest request) {
         AuthValidator.validateLogin(sessionUser);
+
         User user = findUserById(sessionUser.getId());
         Schedule schedule = findScheduleById(scheduleId);
 
+        validateCommentLimit(scheduleId);
+
         Comment comment = new Comment(request.getContent(), user, schedule);
         Comment savedComment = commentRepository.save(comment);
+
         return CommentCreateResponse.from(savedComment);
     }
 
@@ -83,6 +89,14 @@ public class CommentService {
         }
 
         return schedule;
+    }
+
+    private void validateCommentLimit(Long scheduleId) {
+        long commentCount = commentRepository.countByScheduleIdAndDeletedFalse(scheduleId);
+
+        if (commentCount >= MAX_COMMENT_COUNT) {
+            throw new CommentLimitExceededException("일정 하나당 댓글은 최대 10개까지 작성할 수 있습니다.");
+        }
     }
 
     private Comment findCommentById(Long commentId) {

@@ -1,5 +1,7 @@
 package com.wookjae.scheduler.schedule.service;
 
+import com.wookjae.scheduler.comment.dto.CommentGetResponse;
+import com.wookjae.scheduler.comment.repository.CommentRepository;
 import com.wookjae.scheduler.global.auth.AuthValidator;
 import com.wookjae.scheduler.global.auth.SessionUser;
 import com.wookjae.scheduler.global.exception.*;
@@ -20,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +30,7 @@ public class ScheduleService {
 
     private final UserRepository userRepository;
     private final ScheduleRepository scheduleRepository;
+    private final CommentRepository commentRepository;
 
     // 유저 검증 후 일정 생성
     @Transactional
@@ -50,7 +54,14 @@ public class ScheduleService {
     @Transactional(readOnly = true)
     public ScheduleGetResponse findOne(Long scheduleId) {
         Schedule schedule = findScheduleById(scheduleId);
-        return ScheduleGetResponse.from(schedule);
+
+        List<CommentGetResponse> comments = commentRepository
+            .findAllByScheduleIdAndDeletedFalse(scheduleId)
+            .stream()
+            .map(CommentGetResponse::from)
+            .toList();
+
+        return ScheduleGetResponse.from(schedule, comments);
     }
 
     @Transactional
